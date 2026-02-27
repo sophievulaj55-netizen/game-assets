@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐕 Ultimate Dog Fetch Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            gap: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .game-info {
+            display: flex;
+            gap: 30px;
+            color: white;
+            font-size: 18px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px 30px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .game-container {
+            width: 700px;
+            height: 500px;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 50%, #90EE90 100%);
+            border: 4px solid #333;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .dog {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(1);
+            font-size: 50px;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+        }
+        
+        .dog:hover {
+            transform: translateX(-50%) scale(1.1);
+        }
+        
+        .ball {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: radial-gradient(circle at 30% 30%, #FFD700, #FFA500);
+            border-radius: 50%;
+            cursor: grab;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+            animation: bounce 0.6s infinite;
+        }
+        
+        .ball:active {
+            cursor: grabbing;
+            animation: none;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        
+        .special-ball {
+            background: radial-gradient(circle at 30% 30%, #FF1493, #FF69B4) !important;
+            box-shadow: 0 0 15px #FF1493 !important;
+        }
+        
+        .obstacle {
+            position: absolute;
+            background: #8B4513;
+            border-radius: 5px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .star {
+            position: absolute;
+            font-size: 30px;
+            animation: float 2s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        .combo-text {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: #FFD700;
+            pointer-events: none;
+            animation: popUp 1s ease-out forwards;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        @keyframes popUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-60px) scale(1.5); opacity: 0; }
+        }
+        
+        .score, .combo, .time {
+            position: absolute;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+        
+        .score {
+            top: 15px;
+            left: 15px;
+        }
+        
+        .combo {
+            top: 15px;
+            right: 15px;
+        }
+        
+        .time {
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .instructions {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 15px;
+            display: none;
+            z-index: 100;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            border: 3px solid #667eea;
+        }
+        
+        .instructions h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .instructions p {
+            color: #333;
+            margin: 12px 0;
+            font-size: 16px;
+        }
+        
+        .instructions ul {
+            text-align: left;
+            margin: 20px 0;
+            color: #555;
+        }
+        
+        .instructions li {
+            margin: 8px 0;
+        }
+        
+        .instructions button {
+            margin-top: 20px;
+            padding: 12px 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .instructions button:hover {
+            transform: scale(1.05);
+        }
+        
+        .game-over {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 50px;
+            border-radius: 15px;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .game-over h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #FFD700;
+        }
+        
+        .game-over p {
+            font-size: 24px;
+            margin: 15px 0;
+        }
+        
+        .game-over .stats {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .game-over button {
+            margin-top: 20px;
+            padding: 12px 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        
+        .game-over button:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">🐕 Ultimate Dog Fetch Game 🎾</div>
+    
+    <div class="game-info">
+        <span>💡 Drag the ball to throw it!</span>
+        <span>⭐ 💗 = 5 pts</span>
+        <span>🛑 Avoid obstacles!</span>
+    </div>
+    
+    <div class="game-container">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="combo">Combo: <span id="combo">0</span>x</div>
+        <div class="time">Time: <span id="time">30</span>s</div>
+        
+        <div class="dog" id="dog">🐕</div>
+        <div class="ball" id="ball"></div>
+        
+        <div class="instructions" id="instructions">
+            <h1>🐕 Ultimate Fetch Game 🎾</h1>
+            <p><strong>How to Play:</strong></p>
+            <ul>
+                <li>🎾 Drag the <strong>golden ball</strong> and release to throw</li>
+                <li>⭐ Catch <strong>pink balls</strong> for 5 bonus points!</li>
+                <li>💪 Build a <strong>combo</strong> for extra multiplier!</li>
+                <li>🛑 Avoid <strong>obstacles</strong> - they block your pup!</li>
+                <li>⏱️ You have <strong>30 seconds</strong> to fetch!</li>
+            </ul>
+            <button onclick="startGame()">🚀 Start Game!</button>
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h1>Game Over! 🎉</h1>
+            <div class="stats">
+                <p>Final Score: <span id="finalScore">0</span></p>
+                <p>Max Combo: <span id="maxCombo">0</span>x</p>
+                <p>Total Catches: <span id="totalCatches">0</span></p>
+            </div>
+            <button onclick="location.reload()">🔄 Play Again</button>
+        </div>
+    </div>
+    
+    <script>
+        const gameContainer = document.querySelector('.game-container');
+        const dog = document.getElementById('dog');
+        const ball = document.getElementById('ball');
+        const scoreDisplay = document.getElementById('score');
+        const comboDisplay = document.getElementById('combo');
+        const timeDisplay = document.getElementById('time');
+        const instructions = document.getElementById('instructions');
+        const gameOverScreen = document.getElementById('gameOver');
+        
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let totalCatches = 0;
+        let gameActive = false;
+        let gameTime = 30;
+        let ballDragging = false;
+        let ballX, ballY;
+        let dogX = gameContainer.offsetWidth / 2;
+        let dogY = gameContainer.offsetHeight - 80;
+        let isSpecialBall = false;
+        let obstacles = [];
+        
+        window.addEventListener('load', () => {
+            instructions.style.display = 'block';
+            spawnObstacles();
+        });
+        
+        function startGame() {
+            instructions.style.display = 'none';
+            gameActive = true;
+            gameTime = 30;
+            score = 0;
+            combo = 0;
+            totalCatches = 0;
+            maxCombo = 0;
+            scoreDisplay.textContent = '0';
+            comboDisplay.textContent = '0';
+            
+            resetBall();
+            startTimer();
+        }
+        
+        function startTimer() {
+            const timer = setInterval(() => {
+                gameTime--;
+                timeDisplay.textContent = gameTime;
+                
+                if (gameTime <= 0) {
+                    clearInterval(timer);
+                    endGame();
+                }
+            }, 1000);
+        }
+        
+        function spawnObstacles() {
+            obstacles = [];
+            const obstacleCount = 3;
+            
+            for (let i = 0; i < obstacleCount; i++) {
+                const obs = {
+                    x: Math.random() * (gameContainer.offsetWidth - 80),
+                    y: 150 + Math.random() * 150,
+                    width: 80,
+                    height: 40
+                };
+                obstacles.push(obs);
+                
+                const obsEl = document.createElement('div');
+                obsEl.className = 'obstacle';
+                obsEl.style.left = obs.x + 'px';
+                obsEl.style.top = obs.y + 'px';
+                obsEl.style.width = obs.width + 'px';
+                obsEl.style.height = obs.height + 'px';
+                gameContainer.appendChild(obsEl);
+            }
+        }
+        
+        function resetBall() {
+            ballX = Math.random() * (gameContainer.offsetWidth - 25);
+            ballY = Math.random() * (gameContainer.offsetHeight - 150);
+            
+            // Randomly spawn special pink ball (1 in 3 chance)
+            isSpecialBall = Math.random() < 0.33;
+            
+            ball.style.left = ballX + 'px';
+            ball.style.top = ballY + 'px';
+            
+            if (isSpecialBall) {
+                ball.classList.add('special-ball');
+            } else {
+                ball.classList.remove('special-ball');
+            }
+        }
+        
+        ball.addEventListener('mousedown', (e) => {
+            if (!gameActive) return;
+            ballDragging = true;
+            ball.style.cursor = 'grabbing';
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!ballDragging || !gameActive) return;
+            
+            const rect = gameContainer.getBoundingClientRect();
+            ballX = e.clientX - rect.left - 12.5;
+            ballY = e.clientY - rect.top - 12.5;
+            
+            ballX = Math.max(0, Math.min(ballX, gameContainer.offsetWidth - 25));
+            ballY = Math.max(0, Math.min(ballY, gameContainer.offsetHeight - 25));
+            
+            ball.style.left = ballX + 'px';
+            ball.style.top = ballY + 'px';
+        });
+        
+        document.addEventListener('mouseup', () => {
+            if (ballDragging && gameActive) {
+                ballDragging = false;
+                ball.style.cursor = 'grab';
+                throwBall();
+            }
+        });
+        
+        function throwBall() {
+            const distX = dogX - (ballX + 12.5);
+            const distY = dogY - (ballY + 12.5);
+            const distance = Math.sqrt(distX * distX + distY * distY);
+            
+            // Check if path is clear of obstacles
+            const pathClear = checkPathClear(ballX + 12.5, ballY + 12.5, dogX, dogY);
+            
+            const duration = distance / 3;
+            animateDog(ballX + 12.5, ballY + 12.5, duration);
+            
+            setTimeout(() => {
+                if (pathClear) {
+                    totalCatches++;
+                    const points = isSpecialBall ? 5 : 1;
+                    score += points * (combo + 1);
+                    combo++;
+                    
+                    if (combo > maxCombo) maxCombo = combo;
+                    
+                    scoreDisplay.textContent = score;
+                    comboDisplay.textContent = combo;
+                    
+                    // Show combo pop-up
+                    showComboText(ballX, ballY);
+                } else {
+                    combo = 0;
+                    comboDisplay.textContent = '0';
+                }
+                
+                animateDog(gameContainer.offsetWidth / 2, gameContainer.offsetHeight - 80, 500);
+                setTimeout(resetBall, 300);
+            }, duration);
+        }
+        
+        function checkPathClear(fromX, fromY, toX, toY) {
+            for (let obs of obstacles) {
+                if (lineIntersectsRect(fromX, fromY, toX, toY, obs)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        function lineIntersectsRect(x1, y1, x2, y2, rect) {
+            return !(x2 < rect.x || x1 > rect.x + rect.width ||
+                     y2 < rect.y || y1 > rect.y + rect.height);
+        }
+        
+        function animateDog(targetX, targetY, duration) {
+            const startX = dogX;
+            const startY = dogY;
+            const startTime = Date.now();
+            
+            // Flip dog if moving left
+            const isMovingLeft = targetX < dogX;
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                dogX = startX + (targetX - startX) * progress;
+                dogY = startY + (targetY - startY) * progress;
+                
+                dog.style.left = dogX + 'px';
+                dog.style.top = dogY + 'px';
+                dog.style.transform = `translateX(-50%) scaleX(${isMovingLeft ? -1 : 1})`;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            
+            animate();
+        }
+        
+        function showComboText(x, y) {
+            const comboEl = document.createElement('div');
+            comboEl.className = 'combo-text';
+            comboEl.textContent = `+${isSpecialBall ? '5' : '1'} ⭐`;
+            comboEl.style.left = x + 'px';
+            comboEl.style.top = y + 'px';
+            gameContainer.appendChild(comboEl);
+            
+            setTimeout(() => comboEl.remove(), 1000);
+        }
+        
+        function endGame() {
+            gameActive = false;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('maxCombo').textContent = maxCombo;
+            document.getElementById('totalCatches').textContent = totalCatches;
+            gameOverScreen.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
